@@ -1,7 +1,7 @@
 package main
 
 import (
-	"graphql/graph"
+	"gateway/graph"
 	"log"
 	"net/http"
 	"os"

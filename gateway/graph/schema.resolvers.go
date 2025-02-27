@@ -7,7 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
-	"graphql/graph/model"
+	"gateway/graph/model"
 )
 
 // Student is the resolver for the student field.
