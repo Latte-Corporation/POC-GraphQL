@@ -97,16 +97,17 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var students []*model.Student
+	var students []*dto.GetStudent
 	if err := json.NewDecoder(resp.Body).Decode(&students); err != nil {
 		return nil, fmt.Errorf("failed to decode students: %w", err)
 	}
 
+	var studentsModel []*model.Student
 	//fetch courses for each students
 	for _, student := range students {
-		respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/student/%s", student.ID))
+		respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/students/%s", strconv.Itoa(student.ID)))
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch enrollments for student %s: %w", student.ID, err)
+			return nil, fmt.Errorf("failed to fetch enrollments for student %s: %w", strconv.Itoa(student.ID), err)
 		}
 		defer respEnrollments.Body.Close()
 
@@ -116,7 +117,7 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 
 		var enrollments []dto.GetEnrollment
 		if err := json.NewDecoder(respEnrollments.Body).Decode(&enrollments); err != nil {
-			return nil, fmt.Errorf("failed to decode enrollments for student %s: %w", student.ID, err)
+			return nil, fmt.Errorf("failed to decode enrollments for student %s: %w", strconv.Itoa(student.ID), err)
 		}
 
 		var courses []*model.Course
@@ -131,17 +132,29 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 				return nil, fmt.Errorf("unexpected status code for course: %d", respCourse.StatusCode)
 			}
 
-			var course model.Course
+			var course dto.GetCourse
 			if err := json.NewDecoder(respCourse.Body).Decode(&course); err != nil {
 				return nil, fmt.Errorf("failed to decode course: %w", err)
 			}
-			courses = append(courses, &course)
+
+			courseModel := model.Course{
+				ID:          strconv.Itoa(course.ID),
+				Title:        course.Title,
+				Description: &course.Description,
+			}
+			courses = append(courses, &courseModel)
 		}
 
-		student.Courses = courses
+		studentModel := model.Student{
+			ID:    strconv.Itoa(student.ID),
+			Name:  student.Name,
+			Email: student.Email,
+		}
+		studentModel.Courses = courses
+		studentsModel = append(studentsModel, &studentModel)
 	}
 
-	return students, nil
+	return studentsModel, nil
 }
 
 // Courses is the resolver for the courses field.
