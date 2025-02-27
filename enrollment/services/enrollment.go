@@ -3,6 +3,7 @@ package services
 import (
 	"enrollment/dto"
 	"enrollment/repositories"
+	"net/http"
 	"strconv"
 
 	echo "github.com/labstack/echo/v4"
@@ -28,6 +29,20 @@ func (s *enrollmentService) CreateEnrollment(c echo.Context) error {
 	var enrollment dto.PostEnrollment
 	if err := c.Bind(&enrollment); err != nil {
 		c.JSON(400, err)
+		return err
+	}
+
+	// Check if student exists
+	studentResp, err := http.Get("http://localhost:8081/api/students/" + strconv.Itoa(enrollment.StudentID))
+	if err != nil || studentResp.StatusCode != 200 {
+		c.JSON(400, "Invalid student ID")
+		return err
+	}
+
+	// Check if course exists
+	courseResp, err := http.Get("http://localhost:8082/api/courses/" + strconv.Itoa(enrollment.CourseID))
+	if err != nil || courseResp.StatusCode != 200 {
+		c.JSON(400, "Invalid course ID")
 		return err
 	}
 
