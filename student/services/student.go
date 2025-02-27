@@ -37,8 +37,7 @@ func (s *studentService) CreateStudent(c echo.Context) error{
 		return err
 	}
 
-	c.JSON(200, newStudent)
-	return nil
+	return c.JSON(200, newStudent)
 }
 
 func (s *studentService) GetStudent(c echo.Context) error {
@@ -55,8 +54,7 @@ func (s *studentService) GetStudent(c echo.Context) error {
 		return err
 	}
 
-	c.JSON(200, student)
-	return nil
+	return c.JSON(200, student)
 }
 
 func (s *studentService) GetStudents(c echo.Context) error {
@@ -65,8 +63,10 @@ func (s *studentService) GetStudents(c echo.Context) error {
 		c.JSON(500, err)
 		return err
 	}
-
-	c.JSON(200, students)
-	return nil
+	if len(students) == 0 {
+		c.JSON(404, "No students found")
+		return nil
+	}
+	return c.JSON(200, students)
 }
 
