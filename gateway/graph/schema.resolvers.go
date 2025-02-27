@@ -31,7 +31,7 @@ func (r *queryResolver) Student(ctx context.Context, id string) (*model.Student,
 		return nil, fmt.Errorf("failed to decode student: %w", err)
 	}
 
-	respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/student/%s", id))
+	respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/students/%s", id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch enrollments: %w", err)
 	}
