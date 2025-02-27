@@ -13,6 +13,8 @@ type EnrollmentService interface {
 	CreateEnrollment(c echo.Context) error
 	GetEnrollment(c echo.Context) error
 	GetEnrollments(c echo.Context) error
+	GetEnrollmentsForStudent(c echo.Context) error
+	GetEnrollmentsForCourse(c echo.Context) error
 }
 
 type enrollmentService struct {
@@ -83,3 +85,38 @@ func (s *enrollmentService) GetEnrollments(c echo.Context) error {
 	return c.JSON(200, enrollments)
 }
 
+func (s *enrollmentService) GetEnrollmentsForStudent(c echo.Context) error {
+	studentID := c.Param("student_id")
+	studentIDInt, err := strconv.Atoi(studentID)
+	if err != nil {
+		c.JSON(400, "Invalid student ID")
+		return err
+	}
+
+	enrollments, err := s.repo.GetEnrollmentsForStudent(studentIDInt)
+	if err != nil {
+		c.JSON(500, err)
+	}
+	if len(enrollments) == 0 {
+		return c.JSON(404, "No enrollments found")
+	}
+	return c.JSON(200, enrollments)
+}
+
+func (s *enrollmentService) GetEnrollmentsForCourse(c echo.Context) error {
+	courseID := c.Param("course_id")
+	courseIDInt, err := strconv.Atoi(courseID)
+	if err != nil {
+		c.JSON(400, "Invalid course ID")
+		return err
+	}
+
+	enrollments, err := s.repo.GetEnrollmentsForCourse(courseIDInt)
+	if err != nil {
+		c.JSON(500, err)
+	}
+	if len(enrollments) == 0 {
+		return c.JSON(404, "No enrollments found")
+	}
+	return c.JSON(200, enrollments)
+}

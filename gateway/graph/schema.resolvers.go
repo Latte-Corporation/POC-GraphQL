@@ -6,13 +6,78 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"gateway/graph/dto"
 	"gateway/graph/model"
+	"net/http"
+	"strconv"
 )
 
 // Student is the resolver for the student field.
 func (r *queryResolver) Student(ctx context.Context, id string) (*model.Student, error) {
-	panic(fmt.Errorf("not implemented: Student - student"))
+	resp, err := http.Get(fmt.Sprintf("http://localhost:8081/api/students/%s", id))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch student: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var student dto.GetStudent
+	if err := json.NewDecoder(resp.Body).Decode(&student); err != nil {
+		return nil, fmt.Errorf("failed to decode student: %w", err)
+	}
+
+	respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/student/%s", id))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch enrollments: %w", err)
+	}
+	defer respEnrollments.Body.Close()
+
+	if respEnrollments.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code for enrollments: %d", respEnrollments.StatusCode)
+	}
+
+	var enrollments []dto.GetEnrollment
+	if err := json.NewDecoder(respEnrollments.Body).Decode(&enrollments); err != nil {
+		return nil, fmt.Errorf("failed to decode enrollments: %w", err)
+	}
+
+	var courses []*model.Course
+	for _, enrollment := range enrollments {
+		respCourse, err := http.Get(fmt.Sprintf("http://localhost:8082/api/courses/%s", strconv.Itoa(enrollment.CourseID)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch course: %w", err)
+		}
+		defer respCourse.Body.Close()
+
+		if respCourse.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("unexpected status code for course: %d", respCourse.StatusCode)
+		}
+
+		var course dto.GetCourse
+		if err := json.NewDecoder(respCourse.Body).Decode(&course); err != nil {
+			return nil, fmt.Errorf("failed to decode course: %w", err)
+		}
+
+		courseModel := model.Course{
+			ID:          strconv.Itoa(course.ID),
+			Title:        course.Title,
+			Description: &course.Description,
+		}
+		courses = append(courses, &courseModel)
+	}
+
+	studentModel := model.Student{
+		ID:    strconv.Itoa(student.ID),
+		Name:  student.Name,
+		Email: student.Email,
+	}
+	studentModel.Courses = courses
+	return &studentModel, nil
 }
 
 // Course is the resolver for the course field.
@@ -22,7 +87,61 @@ func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, e
 
 // Students is the resolver for the students field.
 func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) {
-	panic(fmt.Errorf("not implemented: Students - students"))
+	resp, err := http.Get("http://localhost:8081/api/students")
+	if (err != nil) {
+		return nil, fmt.Errorf("failed to fetch students: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var students []*model.Student
+	if err := json.NewDecoder(resp.Body).Decode(&students); err != nil {
+		return nil, fmt.Errorf("failed to decode students: %w", err)
+	}
+
+	//fetch courses for each students
+	for _, student := range students {
+		respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/student/%s", student.ID))
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch enrollments for student %s: %w", student.ID, err)
+		}
+		defer respEnrollments.Body.Close()
+
+		if respEnrollments.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("unexpected status code for enrollments: %d", respEnrollments.StatusCode)
+		}
+
+		var enrollments []dto.GetEnrollment
+		if err := json.NewDecoder(respEnrollments.Body).Decode(&enrollments); err != nil {
+			return nil, fmt.Errorf("failed to decode enrollments for student %s: %w", student.ID, err)
+		}
+
+		var courses []*model.Course
+		for _, enrollment := range enrollments {
+			respCourse, err := http.Get(fmt.Sprintf("http://localhost:8082/api/courses/%s", strconv.Itoa(enrollment.CourseID)))
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch course: %w", err)
+			}
+			defer respCourse.Body.Close()
+
+			if respCourse.StatusCode != http.StatusOK {
+				return nil, fmt.Errorf("unexpected status code for course: %d", respCourse.StatusCode)
+			}
+
+			var course model.Course
+			if err := json.NewDecoder(respCourse.Body).Decode(&course); err != nil {
+				return nil, fmt.Errorf("failed to decode course: %w", err)
+			}
+			courses = append(courses, &course)
+		}
+
+		student.Courses = courses
+	}
+
+	return students, nil
 }
 
 // Courses is the resolver for the courses field.

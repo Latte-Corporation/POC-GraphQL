@@ -9,6 +9,8 @@ type EnrollmentRepository interface {
 	CreateEnrollment(enrollment *dto.PostEnrollment) (*domains.Enrollment, error)
 	GetEnrollment(id int) (*domains.Enrollment, error)
 	GetEnrollments() ([]*domains.Enrollment, error)
+	GetEnrollmentsForStudent(studentID int) ([]*domains.Enrollment, error)
+	GetEnrollmentsForCourse(courseID int) ([]*domains.Enrollment, error)
 }
 
 type enrollmentRepository struct {
@@ -43,3 +45,24 @@ func (r *enrollmentRepository) GetEnrollments() ([]*domains.Enrollment, error) {
 	}
 	return enrollments, nil
 }
+
+func (r *enrollmentRepository) GetEnrollmentsForStudent(studentID int) ([]*domains.Enrollment, error) {
+	var enrollments []*domains.Enrollment
+	for _, enrollment := range r.enrollments {
+		if enrollment.StudentID == studentID {
+			enrollments = append(enrollments, enrollment)
+		}
+	}
+	return enrollments, nil
+}
+
+func (r *enrollmentRepository) GetEnrollmentsForCourse(courseID int) ([]*domains.Enrollment, error) {
+	var enrollments []*domains.Enrollment
+	for _, enrollment := range r.enrollments {
+		if enrollment.CourseID == courseID {
+			enrollments = append(enrollments, enrollment)
+		}
+	}
+	return enrollments, nil
+}
+
