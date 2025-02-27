@@ -1,0 +1,70 @@
+package services
+
+import (
+	"enrollment/dto"
+	"enrollment/repositories"
+	"strconv"
+
+	echo "github.com/labstack/echo/v4"
+)
+
+type EnrollmentService interface {
+	CreateEnrollment(c echo.Context) error
+	GetEnrollment(c echo.Context) error
+	GetEnrollments(c echo.Context) error
+}
+
+type enrollmentService struct {
+	repo repositories.EnrollmentRepository
+}
+
+func NewEnrollmentService(repo repositories.EnrollmentRepository) EnrollmentService {
+	return &enrollmentService{
+		repo: repo,
+	}
+}
+
+func (s *enrollmentService) CreateEnrollment(c echo.Context) error {
+	var enrollment dto.PostEnrollment
+	if err := c.Bind(&enrollment); err != nil {
+		c.JSON(400, err)
+		return err
+	}
+
+	newEnrollment, err := s.repo.CreateEnrollment(&enrollment)
+	if err != nil {
+		c.JSON(500, err)
+		return err
+	}
+
+	return c.JSON(200, newEnrollment)
+}
+
+func (s *enrollmentService) GetEnrollment(c echo.Context) error {
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, "Invalid enrollment ID")
+		return err
+	}
+
+	enrollment, err := s.repo.GetEnrollment(idInt)
+	if err != nil {
+		c.JSON(500, err)
+		return err
+	}
+
+	return c.JSON(200, enrollment)
+}
+
+func (s *enrollmentService) GetEnrollments(c echo.Context) error {
+	enrollments, err := s.repo.GetEnrollments()
+	if err != nil {
+		c.JSON(500, err)
+	}
+	if len(enrollments) == 0 {
+		return c.JSON(404, "No enrollments found")
+	}
+	return c.JSON(200, enrollments)
+}
+
