@@ -4,30 +4,52 @@ services:
       context: ./course
       dockerfile: Dockerfile
     container_name: course
-    ports:
-      - '8082:8082'
+    environment:
+      - PORT=8080
+    networks:
+      - internal_network
+
   student:
     build:
       context: ./student
       dockerfile: Dockerfile
     container_name: student
-    ports:
-      - '8081:8081'
+    environment:
+      - PORT=8080
+    networks:
+      - internal_network
+
   enrollment:
     build:
       context: ./enrollment
       dockerfile: Dockerfile
     container_name: enrollment
-    ports:
-      - '8083:8083'
+    environment:
+      - PORT=8080
+    networks:
+      - internal_network
+
   gateway:
     build:
       context: ./gateway
       dockerfile: Dockerfile
     container_name: gateway
+    environment:
+      - PORT=8080
+      - COURSE_SERVICE_URL=http://course:8080
+      - STUDENT_SERVICE_URL=http://student:8080
+      - ENROLLMENT_SERVICE_URL=http://enrollment:8080
     ports:
       - '8080:8080'
     depends_on:
       - course
       - student
       - enrollment
+    networks:
+      - internal_network
+      - public_network
+
+networks:
+  internal_network:
+    internal: true
+  public_network:

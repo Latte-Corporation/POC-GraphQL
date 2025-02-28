@@ -3,11 +3,20 @@ package main
 import (
 	"enrollment/repositories"
 	"enrollment/services"
+	"os"
 
 	"github.com/labstack/echo/v4"
 )
 
+const defaultPort = "8083"
+
 func main() {
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
 	repo := repositories.NewEnrollmentRepository()
 	service := services.NewEnrollmentService(repo)
 
@@ -19,5 +28,5 @@ func main() {
 	api.GET("/enrollments/courses/:course_id", service.GetEnrollmentsForCourse)
 	api.POST("/enrollments", service.CreateEnrollment)
 
-	e.Logger.Fatal(e.Start(":8083"))
+	e.Logger.Fatal(e.Start(":"+port))
 }

@@ -11,12 +11,45 @@ import (
 	"gateway/graph/dto"
 	"gateway/graph/model"
 	"net/http"
+	"os"
 	"strconv"
 )
 
+// Set course, student and enrollment URLs
+const (
+	defaultStudentURL = "http://localhost:8081"
+	defaultCourseURL  = "http://localhost:8082"
+	defaultEnrollmentURL = "http://localhost:8083"
+)
+
+var (
+	studentURL     string
+	courseURL      string
+	enrollmentURL  string
+)
+
+func init() {
+	// Check if the URL is set, if not set to default
+	studentURL = os.Getenv("STUDENT_SERVICE_URL")
+	if studentURL == "" {
+		studentURL = defaultStudentURL
+	}
+
+	courseURL = os.Getenv("COURSE_SERVICE_URL")
+	if courseURL == "" {
+		courseURL = defaultCourseURL
+	}
+
+	enrollmentURL = os.Getenv("ENROLLMENT_SERVICE_URL")
+	if enrollmentURL == "" {
+		enrollmentURL = defaultEnrollmentURL
+	}
+}
+
+
 // Student is the resolver for the student field.
 func (r *queryResolver) Student(ctx context.Context, id string) (*model.Student, error) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8081/api/students/%s", id))
+	resp, err := http.Get(fmt.Sprintf("%s/api/students/%s", studentURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch student: %w", err)
 	}
@@ -31,7 +64,7 @@ func (r *queryResolver) Student(ctx context.Context, id string) (*model.Student,
 		return nil, fmt.Errorf("failed to decode student: %w", err)
 	}
 
-	respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/students/%s", id))
+	respEnrollments, err := http.Get(fmt.Sprintf("%s/api/enrollments/students/%s", enrollmentURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch enrollments: %w", err)
 	}
@@ -50,7 +83,7 @@ func (r *queryResolver) Student(ctx context.Context, id string) (*model.Student,
 
 	var courses []*model.Course
 	for _, enrollment := range enrollments {
-		respCourse, err := http.Get(fmt.Sprintf("http://localhost:8082/api/courses/%s", strconv.Itoa(enrollment.CourseID)))
+		respCourse, err := http.Get(fmt.Sprintf("%s/api/courses/%s", courseURL, strconv.Itoa(enrollment.CourseID)))
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch course: %w", err)
 		}
@@ -84,7 +117,7 @@ func (r *queryResolver) Student(ctx context.Context, id string) (*model.Student,
 
 // Course is the resolver for the course field.
 func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, error) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8082/api/courses/%s", id))
+	resp, err := http.Get(fmt.Sprintf("%s/api/courses/%s", courseURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch course: %w", err)
 	}
@@ -99,7 +132,7 @@ func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, e
 		return nil, fmt.Errorf("failed to decode course: %w", err)
 	}
 
-	respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/courses/%s", id))
+	respEnrollments, err := http.Get(fmt.Sprintf("%s/api/enrollments/courses/%s", enrollmentURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch enrollments: %w", err)
 	}
@@ -118,7 +151,7 @@ func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, e
 
 	var students []*model.Student
 	for _, enrollment := range enrollments {
-		respStudent, err := http.Get(fmt.Sprintf("http://localhost:8081/api/students/%s", strconv.Itoa(enrollment.StudentID)))
+		respStudent, err := http.Get(fmt.Sprintf("%s/api/students/%s", studentURL, strconv.Itoa(enrollment.StudentID)))
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch student: %w", err)
 		}
@@ -152,7 +185,7 @@ func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, e
 
 // Students is the resolver for the students field.
 func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) {
-	resp, err := http.Get("http://localhost:8081/api/students")
+	resp, err := http.Get(fmt.Sprintf("%s/api/students", studentURL))
 	if (err != nil) {
 		return nil, fmt.Errorf("failed to fetch students: %w", err)
 	}
@@ -170,7 +203,7 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 	var studentsModel []*model.Student
 	//fetch courses for each students
 	for _, student := range students {
-		respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/students/%s", strconv.Itoa(student.ID)))
+		respEnrollments, err := http.Get(fmt.Sprintf("%s/api/enrollments/students/%s", enrollmentURL, strconv.Itoa(student.ID)))
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch enrollments for student %s: %w", strconv.Itoa(student.ID), err)
 		}
@@ -189,7 +222,7 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 
 		var courses []*model.Course
 		for _, enrollment := range enrollments {
-			respCourse, err := http.Get(fmt.Sprintf("http://localhost:8082/api/courses/%s", strconv.Itoa(enrollment.CourseID)))
+			respCourse, err := http.Get(fmt.Sprintf("%s/api/courses/%s", courseURL, strconv.Itoa(enrollment.CourseID)))
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch course: %w", err)
 			}
@@ -226,7 +259,7 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 
 // Courses is the resolver for the courses field.
 func (r *queryResolver) Courses(ctx context.Context) ([]*model.Course, error) {
-	resp, err := http.Get("http://localhost:8082/api/courses")
+	resp, err := http.Get(fmt.Sprintf("%s/api/courses", courseURL))
 	if (err != nil) {
 		return nil, fmt.Errorf("failed to fetch courses: %w", err)
 	}
@@ -244,7 +277,7 @@ func (r *queryResolver) Courses(ctx context.Context) ([]*model.Course, error) {
 	var coursesModel []*model.Course
 	//fetch students for each course
 	for _, course := range courses {
-		respEnrollments, err := http.Get(fmt.Sprintf("http://localhost:8083/api/enrollments/courses/%s", strconv.Itoa(course.ID)))
+		respEnrollments, err := http.Get(fmt.Sprintf("%s/api/enrollments/courses/%s", enrollmentURL, strconv.Itoa(course.ID)))
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch enrollments for course %s: %w", strconv.Itoa(course.ID), err)
 		}
@@ -263,7 +296,7 @@ func (r *queryResolver) Courses(ctx context.Context) ([]*model.Course, error) {
 
 		var students []*model.Student
 		for _, enrollment := range enrollments {
-			respStudent, err := http.Get(fmt.Sprintf("http://localhost:8081/api/students/%s", strconv.Itoa(enrollment.StudentID)))
+			respStudent, err := http.Get(fmt.Sprintf("%s/api/students/%s", studentURL, strconv.Itoa(enrollment.StudentID)))
 			if err != nil {
 				return nil, fmt.Errorf("failed to fetch student: %w", err)
 			}

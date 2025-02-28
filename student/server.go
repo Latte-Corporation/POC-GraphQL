@@ -1,12 +1,22 @@
 package main
 
 import (
-	"student/services"
+	"os"
 	"student/repositories"
+	"student/services"
+
 	echo "github.com/labstack/echo/v4"
 )
 
+const defaultPort = "8081"
+
 func main() {
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
 	studentRepository := repositories.NewStudentRepository()
 	studentService := services.NewStudentService(studentRepository)
 
@@ -15,5 +25,5 @@ func main() {
 	api.GET("/students", studentService.GetStudents)
 	api.GET("/students/:id", studentService.GetStudent)
 	api.POST("/students", studentService.CreateStudent)
-	e.Logger.Fatal(e.Start(":8081"))
+	e.Logger.Fatal(e.Start(":"+port))
 }
