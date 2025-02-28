@@ -27,12 +27,12 @@ func (r *studentRepository) CreateStudent(student *dto.PostStudent) (*domains.St
 		Name:      student.Name,
 		Email:     student.Email,
 	}
-	r.students[1] = newStudent
+	r.students[id-1] = newStudent
 	return newStudent, nil
 }
 
 func (r *studentRepository) GetStudent(id int) (*domains.Student, error) {
-	return r.students[id], nil
+	return r.students[id-1], nil
 }
 
 func (r *studentRepository) GetStudents() ([]*domains.Student, error) {
