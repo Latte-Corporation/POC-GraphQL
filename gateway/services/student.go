@@ -10,6 +10,7 @@ import (
 type StudentService interface {
 	GetStudent(id int) (*model.Student, error)
 	GetStudents() ([]*model.Student, error)
+	CreateStudent(input model.StudentInput) (*model.Student, error)
 }
 
 type studentService struct {
@@ -59,4 +60,12 @@ func (s *studentService) GetStudents() ([]*model.Student, error) {
 	}
 
 	return students, nil
+}
+
+func (s *studentService) CreateStudent(input model.StudentInput) (*model.Student, error) {
+	student, err := s.repo.CreateStudent(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create student: %w", err)
+	}
+	return student, nil
 }

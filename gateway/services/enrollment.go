@@ -27,7 +27,7 @@ func NewEnrollmentService(enrollmentRepo repositories.EnrollmentRepository, stud
 
 func (s *enrollmentService) GetCoursesByStudentID(studentID int) ([]*model.Course, error) {
 	enrollments, err := s.enrollmentRepo.GetEnrollmentsByStudentID(studentID)
-	if err != nil {
+	if err != nil && err.Error() == "Error: unexpected status code: 404" {
 		return nil, fmt.Errorf("failed to fetch courses by student ID: %w", err)
 	}
 
@@ -40,13 +40,12 @@ func (s *enrollmentService) GetCoursesByStudentID(studentID int) ([]*model.Cours
 
 		courses = append(courses, course)
 	}
-
 	return courses, nil
 }
 
 func (s *enrollmentService) GetStudentsByCourseID(courseID int) ([]*model.Student, error) {
 	enrollments, err := s.enrollmentRepo.GetEnrollmentsByCourseID(courseID)
-	if err != nil {
+	if err != nil && err.Error() == "Error: unexpected status code: 404" {
 		return nil, fmt.Errorf("failed to fetch students by course ID: %w", err)
 	}
 

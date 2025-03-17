@@ -90,7 +90,11 @@ func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, e
 
 // CreateStudent is the resolver for the createStudent field.
 func (r *mutationResolver) CreateStudent(ctx context.Context, input model.StudentInput) (*model.Student, error) {
-	panic(fmt.Errorf("not implemented: CreateStudent - createStudent"))
+	student, err := studentService.CreateStudent(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create student: %w", err)
+	}
+	return student, nil
 }
 
 // CreateCourse is the resolver for the createCourse field.
