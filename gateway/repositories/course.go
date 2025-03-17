@@ -24,6 +24,12 @@ func NewCourseRepository() CourseRepository {
 
 var courseURL = os.Getenv("COURSE_SERVICE_URL")
 
+func init() {
+	if courseURL == "" {
+		courseURL = "http://localhost:8082"
+	}
+}
+
 func (r *courseRepository) GetCourse(id int) (*model.Course, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/api/courses/%d", courseURL, id))
 	if err != nil {

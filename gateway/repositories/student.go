@@ -1,13 +1,13 @@
 package repositories
 
 import (
-    "encoding/json"
-    "fmt"
-    "gateway/dto"
-    "gateway/graph/model"
-    "net/http"
-    "os"
-    "strconv"
+	"encoding/json"
+	"fmt"
+	"gateway/dto"
+	"gateway/graph/model"
+	"net/http"
+	"os"
+	"strconv"
 )
 
 type StudentRepository interface {
@@ -23,6 +23,12 @@ func NewStudentRepository() StudentRepository {
 }
 
 var studentURL = os.Getenv("STUDENT_SERVICE_URL")
+
+func init() {
+		if studentURL == "" {
+				studentURL = "http://localhost:8081"
+		}
+}
 
 func (r *studentRepository) GetStudent(id int) (*model.Student, error) {
     resp, err := http.Get(fmt.Sprintf("%s/api/students/%d", studentURL, id))
