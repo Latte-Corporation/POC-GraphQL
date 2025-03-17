@@ -99,7 +99,11 @@ func (r *mutationResolver) CreateStudent(ctx context.Context, input model.Studen
 
 // CreateCourse is the resolver for the createCourse field.
 func (r *mutationResolver) CreateCourse(ctx context.Context, input model.CourseInput) (*model.Course, error) {
-	panic(fmt.Errorf("not implemented: CreateCourse - createCourse"))
+	course, err := courseService.CreateCourse(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create course: %w", err)
+	}
+	return course, nil
 }
 
 // EnrollStudentInCourse is the resolver for the enrollStudentInCourse field.
