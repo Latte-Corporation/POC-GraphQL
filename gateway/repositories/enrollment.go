@@ -1,12 +1,12 @@
 package repositories
 
 import (
-    "encoding/json"
-    "fmt"
-    "gateway/dto"
-		"gateway/domains"
-    "net/http"
-    "os"
+	"encoding/json"
+	"fmt"
+	"gateway/domains"
+	"gateway/dto"
+	"net/http"
+	"os"
 )
 
 type EnrollmentRepository interface {
@@ -24,6 +24,12 @@ func NewEnrollmentRepository() EnrollmentRepository {
 }
 
 var enrollmentURL = os.Getenv("ENROLLMENT_SERVICE_URL")
+
+func init() {
+		if enrollmentURL == "" {
+				enrollmentURL = "http://localhost:8083"
+		}
+}
 
 const errorMessage = "failed to fetch enrollments"
 
