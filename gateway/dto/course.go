@@ -5,3 +5,8 @@ type GetCourse struct {
 	Title        string `json:"title"`
 	Description string `json:"description"`
 }
+
+type CreateCourse struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}

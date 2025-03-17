@@ -10,6 +10,7 @@ import (
 type CourseService interface {
 	GetCourse(id int) (*model.Course, error)
 	GetCourses() ([]*model.Course, error)
+	CreateCourse(input model.CourseInput) (*model.Course, error)
 }
 
 type courseService struct {
@@ -59,4 +60,12 @@ func (s *courseService) GetCourses() ([]*model.Course, error) {
 	}
 
 	return courses, nil
+}
+
+func (s *courseService) CreateCourse(input model.CourseInput) (*model.Course, error) {
+	course, err := s.repo.CreateCourse(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create course: %w", err)
+	}
+	return course, nil
 }

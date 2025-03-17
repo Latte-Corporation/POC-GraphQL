@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"gateway/dto"
@@ -13,6 +14,7 @@ import (
 type CourseRepository interface {
 	GetCourse(id int) (*model.Course, error)
 	GetCourses() ([]*model.Course, error)
+	CreateCourse(input model.CourseInput) (*model.Course, error)
 }
 
 type courseRepository struct {
@@ -80,4 +82,37 @@ func (r *courseRepository) GetCourses() ([]*model.Course, error) {
 		courseModels = append(courseModels, &courseModel)
 	}
 	return courseModels, nil
+}
+
+func (r *courseRepository) CreateCourse(input model.CourseInput) (*model.Course, error) {
+	courseData := dto.CreateCourse{
+		Title:       input.Title,
+		Description: *input.Description,
+	}
+	payload, err := json.Marshal(courseData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal course data: %w", err)
+	}
+
+	resp, err := http.Post(fmt.Sprintf("%s/api/courses", courseURL), "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create course: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var course dto.GetCourse
+	if err := json.NewDecoder(resp.Body).Decode(&course); err != nil {
+		return nil, fmt.Errorf("failed to decode course: %w", err)
+	}
+
+	courseModel := model.Course{
+		ID:          strconv.Itoa(course.ID),
+		Title:       course.Title,
+		Description: &course.Description,
+	}
+	return &courseModel, nil
 }
