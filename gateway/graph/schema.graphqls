@@ -1,20 +1,35 @@
 type Student {
-  id: ID!
-  name: String!
-  email: String!
-  courses: [Course]
+	id: ID!
+	name: String!
+	email: String!
+	courses: [Course]
 }
 
 type Course {
-  id: ID!
-  title: String!
-  description: String
-  students: [Student]
+	id: ID!
+	title: String!
+	description: String
+	students: [Student]
 }
 
 type Query {
-  student(id: ID!): Student
-  course(id: ID!): Course
-  students: [Student]
-  courses: [Course]
+	student(id: ID!): Student
+	course(id: ID!): Course
+	students: [Student]
+	courses: [Course]
+}
+input StudentInput {
+	name: String!
+	email: String!
+}
+
+input CourseInput {
+	title: String!
+	description: String
+}
+
+type Mutation {
+	createStudent(input: StudentInput!): Student
+	createCourse(input: CourseInput!): Course
+	enrollStudentInCourse(studentId: ID!, courseId: ID!): Course
 }

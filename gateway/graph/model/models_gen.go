@@ -9,6 +9,14 @@ type Course struct {
 	Students    []*Student `json:"students,omitempty"`
 }
 
+type CourseInput struct {
+	Title       string  `json:"title"`
+	Description *string `json:"description,omitempty"`
+}
+
+type Mutation struct {
+}
+
 type Query struct {
 }
 
@@ -17,4 +25,9 @@ type Student struct {
 	Name    string    `json:"name"`
 	Email   string    `json:"email"`
 	Courses []*Course `json:"courses,omitempty"`
+}
+
+type StudentInput struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }

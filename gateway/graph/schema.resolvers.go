@@ -88,6 +88,21 @@ func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, e
 	return course, nil
 }
 
+// CreateStudent is the resolver for the createStudent field.
+func (r *mutationResolver) CreateStudent(ctx context.Context, input model.StudentInput) (*model.Student, error) {
+	panic(fmt.Errorf("not implemented: CreateStudent - createStudent"))
+}
+
+// CreateCourse is the resolver for the createCourse field.
+func (r *mutationResolver) CreateCourse(ctx context.Context, input model.CourseInput) (*model.Course, error) {
+	panic(fmt.Errorf("not implemented: CreateCourse - createCourse"))
+}
+
+// EnrollStudentInCourse is the resolver for the enrollStudentInCourse field.
+func (r *mutationResolver) EnrollStudentInCourse(ctx context.Context, studentID string, courseID string) (*model.Course, error) {
+	panic(fmt.Errorf("not implemented: EnrollStudentInCourse - enrollStudentInCourse"))
+}
+
 // Students is the resolver for the students field.
 func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) {
 	return studentService.GetStudents()
@@ -98,7 +113,11 @@ func (r *queryResolver) Courses(ctx context.Context) ([]*model.Course, error) {
 	return courseService.GetCourses()
 }
 
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
