@@ -68,6 +68,6 @@ func (s *courseService) SaveCourse(c echo.Context) error {
 	}
 
 	println("New course created: ", newCourse)
-	c.JSON(200, newCourse)
+	c.JSON(201, newCourse)
 	return nil
 }

@@ -54,7 +54,7 @@ func (s *enrollmentService) CreateEnrollment(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, newEnrollment)
+	return c.JSON(201, newEnrollment)
 }
 
 func (s *enrollmentService) GetEnrollment(c echo.Context) error {
