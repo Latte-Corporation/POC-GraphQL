@@ -31,13 +31,13 @@ func (s *studentService) CreateStudent(c echo.Context) error{
 		return err
 	}
 
-	newStudent, err := s.repo.CreateStudent(&student) 
+	newStudent, err := s.repo.CreateStudent(&student)
 	if err != nil {
 		c.JSON(500, err)
 		return err
 	}
 
-	return c.JSON(200, newStudent)
+	return c.JSON(201, newStudent)
 }
 
 func (s *studentService) GetStudent(c echo.Context) error {
