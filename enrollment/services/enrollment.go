@@ -3,7 +3,9 @@ package services
 import (
 	"enrollment/dto"
 	"enrollment/repositories"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	echo "github.com/labstack/echo/v4"
@@ -21,6 +23,23 @@ type enrollmentService struct {
 	repo repositories.EnrollmentRepository
 }
 
+var (
+	studentURL		 string
+	courseURL		 string
+)
+
+func init() {
+	studentURL = os.Getenv("STUDENT_SERVICE_URL")
+	if studentURL == "" {
+		studentURL = "http://localhost:8081"
+	}
+
+	courseURL = os.Getenv("COURSE_SERVICE_URL")
+	if courseURL == "" {
+		courseURL = "http://localhost:8082"
+	}
+}
+
 func NewEnrollmentService(repo repositories.EnrollmentRepository) EnrollmentService {
 	return &enrollmentService{
 		repo: repo,
@@ -35,14 +54,14 @@ func (s *enrollmentService) CreateEnrollment(c echo.Context) error {
 	}
 
 	// Check if student exists
-	studentResp, err := http.Get("http://localhost:8081/api/students/" + strconv.Itoa(enrollment.StudentID))
+	studentResp, err := http.Get(fmt.Sprintf("%s/api/students/%d", studentURL, enrollment.StudentID))
 	if err != nil || studentResp.StatusCode != 200 {
 		c.JSON(400, "Invalid student ID")
 		return err
 	}
 
 	// Check if course exists
-	courseResp, err := http.Get("http://localhost:8082/api/courses/" + strconv.Itoa(enrollment.CourseID))
+	courseResp, err := http.Get(fmt.Sprintf("%s/api/courses/%d", courseURL, enrollment.CourseID))
 	if err != nil || courseResp.StatusCode != 200 {
 		c.JSON(400, "Invalid course ID")
 		return err

@@ -108,7 +108,21 @@ func (r *mutationResolver) CreateCourse(ctx context.Context, input model.CourseI
 
 // EnrollStudentInCourse is the resolver for the enrollStudentInCourse field.
 func (r *mutationResolver) EnrollStudentInCourse(ctx context.Context, studentID string, courseID string) (*model.Course, error) {
-	panic(fmt.Errorf("not implemented: EnrollStudentInCourse - enrollStudentInCourse"))
+	studentIDInt, err := strconv.Atoi(studentID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid student ID: %w", err)
+	}
+
+	courseIDInt, err := strconv.Atoi(courseID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid course ID: %w", err)
+	}
+
+	course, err := enrollenrollmentService.EnrollStudentInCourse(studentIDInt, courseIDInt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to enroll student in course: %w", err)
+	}
+	return course, nil
 }
 
 // Students is the resolver for the students field.

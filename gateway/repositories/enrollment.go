@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"gateway/domains"
@@ -14,6 +15,7 @@ type EnrollmentRepository interface {
     GetEnrollments() ([]*domains.Enrollment, error)
     GetEnrollmentsByStudentID(studentID int) ([]*domains.Enrollment, error)
     GetEnrollmentsByCourseID(courseID int) ([]*domains.Enrollment, error)
+    CreateEnrollment(studentID int, courseID int) error
 }
 
 type enrollmentRepository struct {
@@ -139,4 +141,28 @@ func (r *enrollmentRepository) GetEnrollmentsByCourseID(courseID int) ([]*domain
         enrollmentModels = append(enrollmentModels, &enrollmentModel)
     }
     return enrollmentModels, nil
+}
+
+func (r *enrollmentRepository) CreateEnrollment(studentID int, courseID int) error {
+    enrollment := dto.PostEnrollment{
+        StudentID: studentID,
+        CourseID:  courseID,
+    }
+
+    body, err := json.Marshal(enrollment)
+    if err != nil {
+        return fmt.Errorf("failed to marshal enrollment: %w", err)
+    }
+
+    resp, err := http.Post(fmt.Sprintf("%s/api/enrollments", enrollmentURL), "application/json", bytes.NewBuffer(body))
+    if err != nil {
+        return fmt.Errorf("failed to create enrollment: %w", err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusCreated {
+        return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+    }
+
+    return nil
 }

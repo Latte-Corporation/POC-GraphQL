@@ -26,6 +26,8 @@ services:
     container_name: enrollment
     environment:
       - PORT=8080
+      - COURSE_SERVICE_URL=http://course:8080
+      - STUDENT_SERVICE_URL=http://student:8080
     networks:
       - internal_network
 
