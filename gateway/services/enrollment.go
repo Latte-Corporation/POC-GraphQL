@@ -9,6 +9,7 @@ import (
 type EnrollmentService interface {
 	GetCoursesByStudentID(studentID int) ([]*model.Course, error)
 	GetStudentsByCourseID(courseID int) ([]*model.Student, error)
+	EnrollStudentInCourse(studentID, courseID int) (*model.Course, error)
 }
 
 type enrollmentService struct {
@@ -60,4 +61,18 @@ func (s *enrollmentService) GetStudentsByCourseID(courseID int) ([]*model.Studen
 	}
 
 	return students, nil
+}
+
+func (s *enrollmentService) EnrollStudentInCourse(studentID, courseID int) (*model.Course, error) {
+	course, err := s.courseRepo.GetCourse(courseID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch course by ID: %w", err)
+	}
+
+	err = s.enrollmentRepo.CreateEnrollment(studentID, courseID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create enrollment: %w", err)
+	}
+
+	return course, nil
 }
